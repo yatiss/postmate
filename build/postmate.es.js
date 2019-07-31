@@ -86,8 +86,8 @@ var sanitize = function sanitize(message, allowedOrigin) {
  * @return {Promise}
  */
 
-var resolveValue = function resolveValue(model, property) {
-  var unwrappedContext = typeof model[property] === 'function' ? model[property]() : model[property];
+var resolveValue = function resolveValue(model, property, data) {
+  var unwrappedContext = typeof model[property] === 'function' ? data !== undefined ? model[property](data) : model[property]() : model[property];
   return Postmate.Promise.resolve(unwrappedContext);
 };
 /**
@@ -142,7 +142,7 @@ function () {
 
   var _proto = ParentAPI.prototype;
 
-  _proto.get = function get(property) {
+  _proto.get = function get(property, data) {
     var _this2 = this;
 
     return new Postmate.Promise(function (resolve) {
@@ -165,7 +165,8 @@ function () {
         postmate: 'request',
         type: messageType,
         property: property,
-        uid: uid
+        uid: uid,
+        data: data
       }, _this2.childOrigin);
     });
   };
@@ -237,7 +238,7 @@ function () {
       } // Reply to Parent
 
 
-      resolveValue(_this3.model, property).then(function (value) {
+      resolveValue(_this3.model, property, data).then(function (value) {
         return e.source.postMessage({
           property: property,
           postmate: 'reply',
