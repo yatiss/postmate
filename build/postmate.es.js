@@ -1,6 +1,6 @@
 /**
   postmate - A powerful, simple, promise-based postMessage library
-  @version v1.5.0
+  @version v2.0.1-nb
   @link https://github.com/dollarshaveclub/postmate
   @author Jacob Kelley <jakie8@gmail.com>
   @license MIT
@@ -87,8 +87,12 @@ var sanitize = function sanitize(message, allowedOrigin) {
  */
 
 var resolveValue = function resolveValue(model, property, data) {
-  var unwrappedContext = typeof model[property] === 'function' ? data !== undefined ? model[property](data) : model[property]() : model[property];
-  return Postmate.Promise.resolve(unwrappedContext);
+  try {
+    var unwrappedContext = typeof model[property] === 'function' ? data !== undefined ? model[property](data) : model[property]() : model[property];
+    return Postmate.Promise.resolve(unwrappedContext);
+  } catch (err) {
+    return Postmate.Promise.reject(err);
+  }
 };
 /**
  * Composes an API to be used by the parent

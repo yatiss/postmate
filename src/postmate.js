@@ -81,9 +81,14 @@ export const sanitize = (message, allowedOrigin) => {
  * @return {Promise}
  */
 export const resolveValue = (model, property, data) => {
-  const unwrappedContext = typeof model[property] === 'function'
-    ? (data !== undefined ? model[property](data) : model[property]() ) : model[property]
-  return Postmate.Promise.resolve(unwrappedContext)
+  try {
+      const unwrappedContext = typeof model[property] === 'function'
+          ? (data !== undefined ? model[property](data) : model[property]() ) : model[property]
+      return Postmate.Promise.resolve(unwrappedContext)
+  } catch (err) {
+      return Postmate.Promise.reject(err);
+  }
+
 }
 
 /**
