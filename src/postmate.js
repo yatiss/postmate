@@ -140,12 +140,12 @@ export class ParentAPI {
       const transact = (e) => {
         if (e.data.uid === uid && e.data.postmate === 'reply') {
           this.parent.removeEventListener('message', transact, false)
-          resolve(e.data.value)
+          resolve(e.data.value);
         }
       }
 
       // Prepare for response from Child...
-      this.parent.addEventListener('message', transact, false)
+      this.parent.addEventListener('message', transact, false);
 
       // Then ask child for information
       this.child.postMessage({
