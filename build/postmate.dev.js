@@ -1,6 +1,6 @@
 /**
   postmate - A powerful, simple, promise-based postMessage library
-  @version v1.6.0
+  @version v2.0.2-nb
   @link https://github.com/dollarshaveclub/postmate
   @author Jacob Kelley <jakie8@gmail.com>
   @license MIT
@@ -67,14 +67,14 @@
     emit: 1,
     reply: 1,
     request: 1
-    /**
-     * Ensures that a message is safe to interpret
-     * @param  {Object} message The postmate message being sent
-     * @param  {String|Boolean} allowedOrigin The whitelisted origin or false to skip origin check
-     * @return {Boolean}
-     */
-
   };
+  /**
+   * Ensures that a message is safe to interpret
+   * @param  {Object} message The postmate message being sent
+   * @param  {String|Boolean} allowedOrigin The whitelisted origin or false to skip origin check
+   * @return {Boolean}
+   */
+
   var sanitize = function sanitize(message, allowedOrigin) {
     if (typeof allowedOrigin === 'string' && message.origin !== allowedOrigin) return false;
     if (!message.data) return false;
@@ -92,9 +92,13 @@
    * @return {Promise}
    */
 
-  var resolveValue = function resolveValue(model, property) {
-    var unwrappedContext = typeof model[property] === 'function' ? model[property]() : model[property];
-    return Postmate.Promise.resolve(unwrappedContext);
+  var resolveValue = function resolveValue(model, property, data) {
+    try {
+      var unwrappedContext = typeof model[property] === 'function' ? data !== undefined ? model[property](data) : model[property]() : model[property];
+      return Postmate.Promise.resolve(unwrappedContext);
+    } catch (err) {
+      return Postmate.Promise.reject(err);
+    }
   };
   /**
    * Composes an API to be used by the parent
@@ -150,7 +154,7 @@
 
     var _proto = ParentAPI.prototype;
 
-    _proto.get = function get(property) {
+    _proto.get = function get(property, data) {
       var _this2 = this;
 
       return new Postmate.Promise(function (resolve) {
@@ -173,7 +177,8 @@
           postmate: 'request',
           type: messageType,
           property: property,
-          uid: uid
+          uid: uid,
+          data: data
         }, _this2.childOrigin);
       });
     };
@@ -249,7 +254,7 @@
         } // Reply to Parent
 
 
-        resolveValue(_this3.model, property).then(function (value) {
+        resolveValue(_this3.model, property, data).then(function (value) {
           return e.source.postMessage({
             property: property,
             postmate: 'reply',

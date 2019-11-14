@@ -1,6 +1,6 @@
 /**
   postmate - A powerful, simple, promise-based postMessage library
-  @version v2.0.1-nb
+  @version v2.0.2-nb
   @link https://github.com/dollarshaveclub/postmate
   @author Jacob Kelley <jakie8@gmail.com>
   @license MIT
@@ -61,14 +61,14 @@ var messageTypes = {
   emit: 1,
   reply: 1,
   request: 1
-  /**
-   * Ensures that a message is safe to interpret
-   * @param  {Object} message The postmate message being sent
-   * @param  {String|Boolean} allowedOrigin The whitelisted origin or false to skip origin check
-   * @return {Boolean}
-   */
-
 };
+/**
+ * Ensures that a message is safe to interpret
+ * @param  {Object} message The postmate message being sent
+ * @param  {String|Boolean} allowedOrigin The whitelisted origin or false to skip origin check
+ * @return {Boolean}
+ */
+
 var sanitize = function sanitize(message, allowedOrigin) {
   if (typeof allowedOrigin === 'string' && message.origin !== allowedOrigin) return false;
   if (!message.data) return false;
