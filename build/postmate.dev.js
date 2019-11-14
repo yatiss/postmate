@@ -1,6 +1,6 @@
 /**
   postmate - A powerful, simple, promise-based postMessage library
-  @version v2.0.1-nb
+  @version v1.6.0
   @link https://github.com/dollarshaveclub/postmate
   @author Jacob Kelley <jakie8@gmail.com>
   @license MIT
@@ -9,7 +9,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.Postmate = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   /**
    * The type of messages our frames our sending
@@ -92,13 +92,9 @@
    * @return {Promise}
    */
 
-  var resolveValue = function resolveValue(model, property, data) {
-    try {
-      var unwrappedContext = typeof model[property] === 'function' ? data !== undefined ? model[property](data) : model[property]() : model[property];
-      return Postmate.Promise.resolve(unwrappedContext);
-    } catch (err) {
-      return Postmate.Promise.reject(err);
-    }
+  var resolveValue = function resolveValue(model, property) {
+    var unwrappedContext = typeof model[property] === 'function' ? model[property]() : model[property];
+    return Postmate.Promise.resolve(unwrappedContext);
   };
   /**
    * Composes an API to be used by the parent
@@ -138,7 +134,9 @@
           }
 
           if (name in _this.events) {
-            _this.events[name].call(_this, data);
+            _this.events[name].forEach(function (callback) {
+              callback.call(_this, data);
+            });
           }
         }
       };
@@ -152,7 +150,7 @@
 
     var _proto = ParentAPI.prototype;
 
-    _proto.get = function get(property, data) {
+    _proto.get = function get(property) {
       var _this2 = this;
 
       return new Postmate.Promise(function (resolve) {
@@ -175,8 +173,7 @@
           postmate: 'request',
           type: messageType,
           property: property,
-          uid: uid,
-          data: data
+          uid: uid
         }, _this2.childOrigin);
       });
     };
@@ -192,7 +189,11 @@
     };
 
     _proto.on = function on(eventName, callback) {
-      this.events[eventName] = callback;
+      if (!this.events[eventName]) {
+        this.events[eventName] = [];
+      }
+
+      this.events[eventName].push(callback);
     };
 
     _proto.destroy = function destroy() {
@@ -241,14 +242,14 @@
 
         if (e.data.postmate === 'call') {
           if (property in _this3.model && typeof _this3.model[property] === 'function') {
-            _this3.model[property].call(_this3, data);
+            _this3.model[property](data);
           }
 
           return;
         } // Reply to Parent
 
 
-        resolveValue(_this3.model, property, data).then(function (value) {
+        resolveValue(_this3.model, property).then(function (value) {
           return e.source.postMessage({
             property: property,
             postmate: 'reply',
@@ -300,11 +301,13 @@
           container = _ref2$container === void 0 ? typeof container !== 'undefined' ? container : document.body : _ref2$container,
           model = _ref2.model,
           url = _ref2.url,
+          name = _ref2.name,
           _ref2$classListArray = _ref2.classListArray,
           classListArray = _ref2$classListArray === void 0 ? [] : _ref2$classListArray;
       // eslint-disable-line no-undef
       this.parent = window;
       this.frame = document.createElement('iframe');
+      this.frame.name = name || '';
       this.frame.classList.add.apply(this.frame.classList, classListArray);
       container.appendChild(this.frame);
       this.child = this.frame.contentWindow || this.frame.contentDocument.parentWindow;
@@ -387,7 +390,7 @@
         if (_this4.frame.attachEvent) {
           _this4.frame.attachEvent('onload', loaded);
         } else {
-          _this4.frame.onload = loaded;
+          _this4.frame.addEventListener('load', loaded);
         }
 
         {
@@ -497,4 +500,4 @@
 
   return Postmate;
 
-}));
+})));
